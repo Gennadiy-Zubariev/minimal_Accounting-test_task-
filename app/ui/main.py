@@ -106,6 +106,11 @@ if "nav" not in st.session_state:
         st.session_state["nav"] = "📊 Панель"
 
 
+st.markdown(
+    "<style>[data-testid='stSidebarNav']{display:none}</style>",
+    unsafe_allow_html=True,
+)
+
 with st.sidebar:
     st.markdown("## 📒 Облік")
     st.caption("Мінімальний бухгалтерський додаток")

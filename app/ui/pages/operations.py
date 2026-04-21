@@ -76,25 +76,28 @@ def _operation_form():
             key="new_op_cp", label="Контрагент",
         )
 
+    cp_suffix = counterparty_id if counterparty_id is not None else "none"
+    form_key_suffix = f"{op_type_code}_{cp_suffix}"
+
     col_date, col_amount = st.columns([1, 1])
     with col_date:
         op_date = st.date_input(
             "Дата",
             value=date.today(),
             max_value=date.today(),
-            key="new_op_date",
+            key=f"new_op_date",
         )
     with col_amount:
         amount = st.number_input(
             "Сума", min_value=0.0, step=100.0, format="%.2f",
             value=0.0,
-            key="new_op_amount",
+            key=f"new_op_amount_{form_key_suffix}",
         )
     description = st.text_input(
         "Опис",
         placeholder="Напр. 'Продаж партії товару'",
         value="",
-        key="new_op_desc",
+        key=f"new_op_desc_{form_key_suffix}",
     )
 
     if st.button("💾 Записати операцію", key="new_op_submit"):
@@ -110,7 +113,10 @@ def _operation_form():
                 f"Операцію #{op_id} ({OPERATION_TYPES[op_type_code]}) "
                 f"на суму {amount:,.2f} збережено."
             )
-            for k in ("new_op_amount", "new_op_desc"):
+            for k in (
+                f"new_op_amount_{form_key_suffix}",
+                f"new_op_desc_{form_key_suffix}",
+            ):
                 if k in st.session_state:
                     del st.session_state[k]
             st.rerun()
