@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  accounting:
+    build: .
+    container_name: accounting_app
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./static/backgrounds:/app/static/backgrounds
+    restart: unless-stopped
+    environment:
+      - ACCOUNTING_DB_PATH=/app/data/accounting.db

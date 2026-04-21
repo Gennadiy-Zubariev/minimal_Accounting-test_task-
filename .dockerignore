@@ -2,8 +2,10 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.git/
+.gitignore
 .vscode/
 .idea/
-.DS_Store
 data/*.db
 data/*.db-journal
+.DS_Store
