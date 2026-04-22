@@ -1,32 +1,3 @@
-"""
-============================================================================
-pages/operations.py — СТОРІНКА "ОПЕРАЦІЇ"
-============================================================================
-
-ЩО ЦЕ ЗА ФАЙЛ:
-    Дві вкладки:
-      1. ➕ Нова операція — форма реєстрації (продаж, купівля, оплата, ...).
-      2. 📋 Журнал — перегляд операцій за період.
-
-    Контрагент обирається з загального списку (без розподілу на клієнтів/
-    постачальників). Роль контрагента визначається типом операції.
-
-ВАЖЛИВО про збереження:
-    Записується тільки при кліку по кнопці "Записати операцію".
-    Enter у полях не викликає сабміт.
-
-ДЕ ПРАВИТИ ЩО:
-    • Хочу ДОДАТИ новий тип операції
-      → app/chart.py (OPERATION_TYPES + POSTING_RULES).
-
-    • Хочу ЗМІНИТИ ПЕРІОД ЗА ЗАМОВЧУВАННЯМ у журналі
-      → default_from у _operations_list() (зараз: останні 30 днів).
-
-    • Хочу ДОДАТИ КОЛОНКУ у таблицю журналу
-      → pd.DataFrame у _operations_list().
-============================================================================
-"""
-
 from datetime import date, timedelta
 
 import pandas as pd
@@ -39,7 +10,7 @@ from app.ui.components import counterparty_picker
 
 
 def render():
-    """Викликається з main.py коли обрано '📝 Операції'."""
+    """Render the Operations page."""
     st.title("📝 Операції")
     st.caption("Повсякденні події: продажі, купівлі, оплати.")
 
@@ -51,7 +22,7 @@ def render():
 
 
 def _operation_form():
-    """Форма реєстрації нової операції (без st.form — збереження по кнопці)."""
+    """Render the new-operation form (button-based submit, no st.form wrapper)."""
     selectable_types = {
         code: label for code, label in OPERATION_TYPES.items()
         if code != "opening_balance"
@@ -68,8 +39,6 @@ def _operation_form():
     if rule:
         st.info(f"Проводка: **Дт {rule['dr']}  •  Кт {rule['cr']}**")
 
-    # Якщо тип операції вимагає контрагента — показуємо пікер.
-    # Без фільтра по типу: один контрагент може бути і клієнтом, і постачальником.
     counterparty_id = None
     if rule and rule["needs_counterparty"]:
         counterparty_id = counterparty_picker(
@@ -125,7 +94,7 @@ def _operation_form():
 
 
 def _operations_list():
-    """Журнал операцій з фільтром по даті."""
+    """Render the operations journal with a date-range filter."""
     default_from = date.today() - timedelta(days=30)
 
     col1, col2 = st.columns(2)

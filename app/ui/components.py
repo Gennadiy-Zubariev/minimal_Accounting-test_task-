@@ -1,37 +1,3 @@
-"""
-============================================================================
-components.py — UI-КОМПОНЕНТИ БАГАТОРАЗОВОГО ВИКОРИСТАННЯ
-============================================================================
-
-ЩО ЦЕ ЗА ФАЙЛ:
-    Тут дві речі:
-    1) counterparty_picker() — пошук контрагента + кнопка Додати.
-    2) apply_background() — CSS для фону + список доступних картинок.
-
-ЯК ПРАЦЮЄ ПІКЕР:
-    • Зліва — searchable selectbox. Клікаєш, друкуєш назву/ЄДРПОУ,
-      вибираєш потрібного контрагента.
-    • Справа — кнопка "➕ Додати". При натисканні — під пікером
-      з'являється форма додавання нового.
-    • Контрагенти показуються УСІ (без розділу на клієнтів/постачальників),
-      бо один контрагент може бути і тим, і іншим — роль визначається
-      типом операції, в якій він бере участь.
-
-ДЕ ПРАВИТИ ЩО:
-    • Хочу ЗМІНИТИ НАПИС на кнопці додавання
-      → рядок st.button(...) у counterparty_picker().
-
-    • Хочу ЗМІНИТИ співвідношення ширини поля і кнопки
-      → параметр columns у st.columns([5, 1]) (зараз 5:1).
-
-    • Хочу ЗМІНИТИ ЗАГАЛЬНУ КОЛЬОРОВУ СХЕМУ ДОДАТКУ
-      → змінна BASE_CSS нижче.
-
-    • Хочу додати СВІЙ ФОН
-      → просто скопіюйте картинку .png/.jpg у папку static/backgrounds/.
-============================================================================
-"""
-
 import base64
 from pathlib import Path
 
@@ -45,26 +11,20 @@ BACKGROUNDS_DIR = Path(__file__).resolve().parents[2] / "static" / "backgrounds"
 SUPPORTED_EXT = {".png", ".jpg", ".jpeg", ".webp"}
 
 
-# ===========================================================================
-# 1. ПІКЕР КОНТРАГЕНТА
-# ===========================================================================
 def counterparty_picker(
     key: str,
     label: str = "Контрагент",
 ) -> int | None:
     """
-    Показує searchable selectbox + кнопку "Додати". Повертає id обраного
-    контрагента або None.
+    Render a searchable counterparty selectbox with an inline Add form.
 
-    ВАЖЛИВО: не можна розміщувати всередині st.form() — пікер сам містить
-    st.form для додавання нового (вкладені форми Streamlit забороняє).
+    Returns the selected counterparty id, or None.
+    Must not be placed inside st.form — the embedded add-form would be nested.
     """
-    # Стан "форма додавання відкрита чи ні" — у session_state.
     open_key = f"{key}_add_open"
     if open_key not in st.session_state:
         st.session_state[open_key] = False
 
-    # Список усіх контрагентів.
     candidates = db.list_counterparties()
     options: list = [None] + [c["id"] for c in candidates]
 
@@ -76,7 +36,6 @@ def counterparty_picker(
                 return f"🧾 {c['name']}  •  ЄДРПОУ {c['edrpou']}"
         return f"#{opt}"
 
-    # Ряд: [пошук/вибір]   [кнопка]
     col_pick, col_btn = st.columns([5, 1], vertical_alignment="bottom")
 
     with col_pick:
@@ -94,7 +53,6 @@ def counterparty_picker(
             st.session_state[open_key] = not st.session_state[open_key]
             st.rerun()
 
-    # Форма додавання — тільки якщо відкрита.
     if st.session_state[open_key]:
         _render_new_counterparty_form(
             key_prefix=f"{key}_new",
@@ -105,8 +63,7 @@ def counterparty_picker(
 
 
 def _render_new_counterparty_form(key_prefix, open_state_key):
-    """Форма 'Додати контрагента'. Після успіху закриває себе і робить rerun."""
-
+    """Render the inline 'Add counterparty' form. Closes itself on success."""
     with st.container(border=True):
         st.markdown("**➕ Новий контрагент**")
 
@@ -145,20 +102,16 @@ def _render_new_counterparty_form(key_prefix, open_state_key):
                     st.error(str(e))
 
 
-# ===========================================================================
-# 2. ФОН І СТИЛІ
-# ===========================================================================
-
 BASE_CSS = """
 .stApp { background-color: #f5f7fa; }
 h1, h2, h3 { color: #1f2937; }
 .block-container {
-    background-color: rgba(255, 255, 255, 0.88);
+    background-color: rgba(255, 255, 255, 0.60);
     padding: 2rem 2.5rem;
     border-radius: 12px;
 }
 div[data-testid="stMetric"] {
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.60);
     padding: 1rem;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
@@ -167,7 +120,7 @@ div[data-testid="stMetric"] {
 
 
 def list_backgrounds() -> list:
-    """Список імен файлів у папці static/backgrounds/."""
+    """Return sorted filenames from the static/backgrounds/ directory."""
     if not BACKGROUNDS_DIR.exists():
         return []
     return sorted(
@@ -177,7 +130,7 @@ def list_backgrounds() -> list:
 
 
 def apply_background(background_filename: str | None) -> None:
-    """Базовий CSS + (опційно) фонова картинка."""
+    """Inject base CSS and optionally a background image into the page."""
     css = BASE_CSS
 
     if background_filename:
